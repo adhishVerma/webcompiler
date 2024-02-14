@@ -16,19 +16,33 @@ import { Button } from "./ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { CompilerSliceStateType, updateCurrentLanguage } from "@/redux/slices/compilerSlice";
 import { RootState } from "@/redux/store";
+import { Badge } from "./ui/badge";
+import { useState } from "react";
+
+const fileNames = {
+    html : 'index.html',
+    css : 'style.css',
+    javascript : 'main.js'
+}
 
 const CodeControls = () => {
-
+    
     const dispatch = useDispatch()
-    const currentLanguage = useSelector((state:RootState) => state.compilerSlice.currentLanguage)
+    const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage)
+    
+    const [file,setFile] = useState(fileNames[currentLanguage]);
 
     const valueChange = (val: string) => {
         dispatch(updateCurrentLanguage(val as CompilerSliceStateType["currentLanguage"]));
+        setFile(fileNames[val as CompilerSliceStateType["currentLanguage"]])
     }
 
+
     return (
-        <div className="__helper_header w-full h-[48px] flex justify-between items-center">
-            <p className="grow">FileName</p>
+        <div className="__helper_header px-2 w-full h-[48px] flex justify-between items-center">
+            <p className="grow">
+                <Badge>{file}</Badge>
+            </p>
             <div className="grow-0 flex gap-2">
                 <TooltipProvider>
                     <Tooltip>
