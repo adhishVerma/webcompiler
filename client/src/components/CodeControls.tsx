@@ -11,7 +11,17 @@ import {
     TooltipProvider,
     TooltipTrigger,
 } from "@/components/ui/tooltip"
-import { Save, Share2 } from 'lucide-react';
+import {
+    Dialog,
+    DialogContent,
+    DialogDescription,
+    DialogHeader,
+    DialogTitle,
+    DialogTrigger,
+} from "@/components/ui/dialog"
+import { Input } from "@/components/ui/input"
+
+import { Save, Share2, Loader2, Copy } from 'lucide-react';
 import { Button } from "./ui/button";
 import { useDispatch, useSelector } from "react-redux";
 import { CompilerSliceStateType, updateCurrentLanguage } from "@/redux/slices/compilerSlice";
@@ -20,6 +30,8 @@ import { Badge } from "./ui/badge";
 import { useState } from "react";
 import { handleError } from "@/utils/handleError";
 import axios from 'axios';
+import { useNavigate, useParams } from "react-router-dom";
+import { toast } from "sonner"
 
 const fileNames = {
     html: 'index.html',
@@ -28,6 +40,12 @@ const fileNames = {
 }
 
 const CodeControls = () => {
+
+    const { id } = useParams();
+
+    const [saveLoading, setSaveLoading] = useState<boolean>(false)
+
+    const navigate = useNavigate();
 
     const dispatch = useDispatch()
     const currentLanguage = useSelector((state: RootState) => state.compilerSlice.currentLanguage)
@@ -42,18 +60,46 @@ const CodeControls = () => {
         setFile(fileNames[val as CompilerSliceStateType["currentLanguage"]])
     }
 
+    const createCode = async () => {
+        const response = await axios.post(`http://localhost:9000/editor/save/`, {
+            "fullCode": {
+                "html": htmlCode,
+                "css": cssCode,
+                "javascript": javascriptCode
+            }
+        })
+        navigate(`/editor/${response.data.url}`, { replace: true });
+    }
+
+    const saveCode = async () => {
+        const response = await axios.put(`http://localhost:9000/editor/save/`, {
+            "urlId": id,
+            "fullCode": {
+                "html": htmlCode,
+                "css": cssCode,
+                "javascript": javascriptCode
+            }
+        })
+    }
+
+    const handleCopy = async () => {
+        window.navigator.clipboard.writeText(window.location.href)
+        toast("link copied");
+    }
+
     const handleSave = async () => {
+        setSaveLoading(true);
         try {
-            const response = await axios.post(`http://localhost:9000/editor/save/`, {
-                "fullCode": {
-                    "html": htmlCode,
-                    "css": cssCode,
-                    "javascript": javascriptCode
-                }
-            })
-            console.log(response);
+            if (id) {
+                // update existing code
+                await saveCode();
+            }else{
+                await createCode();
+            }
         } catch (error) {
             handleError(error);
+        } finally {
+            setSaveLoading(false)
         }
     }
 
@@ -63,24 +109,46 @@ const CodeControls = () => {
                 <Badge>{file}</Badge>
             </div>
             <div className="grow-0 flex gap-2">
-                <TooltipProvider>
+                <TooltipProvider >
                     <Tooltip>
                         <TooltipTrigger asChild={true}>
-                            <Button variant="outline" size="icon" className="p-2"><Save className="w-6 h-6" onClick={handleSave} /></Button>
+                            <Button disabled={saveLoading} variant="outline" size="icon" className="p-2">
+                                {saveLoading ? <Loader2 className="w-6 h-6 animate-spin" /> : <Save className="w-6 h-6" onClick={handleSave} />}
+                            </Button>
                         </TooltipTrigger>
                         <TooltipContent>
                             <p>save</p>
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                <TooltipProvider>
-                    <Tooltip>
-                        <TooltipTrigger asChild={true}><Button variant="outline" size="icon" className="p-2"><Share2 className="w-6 h-6" /></Button></TooltipTrigger>
-                        <TooltipContent>
-                            <p>share</p>
-                        </TooltipContent>
-                    </Tooltip>
-                </TooltipProvider>
+                {id && <Dialog>
+                    <DialogTrigger asChild>
+                        <Button variant="outline" size="icon" className="p-2">
+                            <TooltipProvider>
+                                <Tooltip>
+                                    <TooltipTrigger asChild>
+                                        <Share2 className="w-6 h-6" />
+                                    </TooltipTrigger>
+                                    <TooltipContent>
+                                        <p>share</p>
+                                    </TooltipContent>
+                                </Tooltip>
+                            </TooltipProvider>
+                        </Button>
+                    </DialogTrigger>
+                    <DialogContent>
+                        <DialogHeader>
+                            <DialogTitle>Share your Code!</DialogTitle>
+                            <DialogDescription>
+                                <div className="flex justify-between items-center my-2 gap-1">
+                                    <Input type="text" value={window.location.href} />
+                                    <Button variant="outline" size="icon" className="p-2" onClick={handleCopy}><Copy /></Button>
+                                </div>
+                                Share your code with others via this link
+                            </DialogDescription>
+                        </DialogHeader>
+                    </DialogContent>
+                </Dialog>}
                 <Select onValueChange={valueChange} defaultValue={currentLanguage}>
                     <SelectTrigger className="focus:ring-0 active:ring-0">
                         <SelectValue />
@@ -91,6 +159,7 @@ const CodeControls = () => {
                         <SelectItem value="javascript">Javascript</SelectItem>
                     </SelectContent>
                 </Select>
+
             </div>
         </div>
     )

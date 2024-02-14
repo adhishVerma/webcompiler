@@ -7,8 +7,40 @@ import {
 } from "@/components/ui/resizable"
 import CodeRenderer from "@/components/CodeRenderer"
 import { Badge } from "@/components/ui/badge"
+import { useParams } from "react-router-dom"
+import { useEffect } from "react"
+import { handleError } from "@/utils/handleError"
+import axios from "axios"
+import { useDispatch } from "react-redux"
+import { saveFullCode } from "@/redux/slices/compilerSlice"
+import { toast } from "sonner"
 
 const Editor = () => {
+  const { id } = useParams();
+  const dispatch = useDispatch();
+
+  const loadCode = async () => {
+    try {
+      const response = await axios.post(`http://localhost:9000/editor/load/`, {
+        urlId: id
+      })
+      const { fullCode } = response.data;
+      dispatch(saveFullCode(fullCode));
+    } catch (error) {
+      if(axios.isAxiosError(error)){
+        if(error?.response?.status === 404){
+          toast("Invalid URL, Begin with a new code");
+        }
+      }
+      handleError(error)
+    }
+  }
+
+  useEffect(() => {
+    if (id) {
+      loadCode();
+    }
+  }, [id])
 
   return (
     <>
