@@ -13,10 +13,17 @@ import {
 } from "@/components/ui/tooltip"
 import { Save, Share2 } from 'lucide-react';
 import { Button } from "./ui/button";
+import { useDispatch, useSelector } from "react-redux";
+import { CompilerSliceStateType, updateCurrentLanguage } from "@/redux/slices/compilerSlice";
+import { RootState } from "@/redux/store";
 
 const CodeControls = () => {
-    const valueChange = (val: any) => {
-        console.log(val)
+
+    const dispatch = useDispatch()
+    const currentLanguage = useSelector((state:RootState) => state.compilerSlice.currentLanguage)
+
+    const valueChange = (val: string) => {
+        dispatch(updateCurrentLanguage(val as CompilerSliceStateType["currentLanguage"]));
     }
 
     return (
@@ -41,14 +48,14 @@ const CodeControls = () => {
                         </TooltipContent>
                     </Tooltip>
                 </TooltipProvider>
-                <Select onValueChange={valueChange}>
+                <Select onValueChange={valueChange} defaultValue={currentLanguage}>
                     <SelectTrigger className="focus:ring-0 active:ring-0">
-                        <SelectValue placeholder="Language" />
+                        <SelectValue />
                     </SelectTrigger>
                     <SelectContent>
-                        <SelectItem value="Html">HTML</SelectItem>
-                        <SelectItem value="Css">CSS</SelectItem>
-                        <SelectItem value="Javascript">Javascript</SelectItem>
+                        <SelectItem value="html">HTML</SelectItem>
+                        <SelectItem value="css">CSS</SelectItem>
+                        <SelectItem value="javascript">Javascript</SelectItem>
                     </SelectContent>
                 </Select>
             </div>

@@ -7,6 +7,7 @@ import {
   } from "@/components/ui/resizable"
 
 const Editor = () => {
+
   return (
     <>
     <ResizablePanelGroup direction="horizontal" className="w-full">
