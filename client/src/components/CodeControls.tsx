@@ -27,7 +27,7 @@ const CodeControls = () => {
     }
 
     return (
-        <div className="__helper_header p-1 w-full flex justify-between items-center">
+        <div className="__helper_header p-1 w-full h-[48px] flex justify-between items-center">
             <p className="grow">FileName</p>
             <div className="grow-0 flex gap-2">
                 <TooltipProvider>

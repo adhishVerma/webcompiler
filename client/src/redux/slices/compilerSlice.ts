@@ -21,17 +21,12 @@ const compilerSlice = createSlice({
         updateCurrentLanguage: (state, action: PayloadAction<CompilerSliceStateType["currentLanguage"]>) => {
             state.currentLanguage = action.payload;
         },
-        updateHtml : (state, action:PayloadAction) => {
-            console.log(action);
-        },
-        updateCss : (state, action:PayloadAction) => {
-            console.log(action);
-        },
-        updateJavascript : (state, action:PayloadAction) => {
-            console.log(action);
+        updateCode : (state, action: PayloadAction<string>) => {
+            const code = action.payload;
+            state[state.currentLanguage] = code;
         }
-    }
+    }   
 })
 
 export default compilerSlice.reducer;
-export const {updateCurrentLanguage, updateJavascript,updateCss,updateHtml} = compilerSlice.actions;
+export const {updateCurrentLanguage, updateCode} = compilerSlice.actions;
